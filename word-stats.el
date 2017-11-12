@@ -1,4 +1,4 @@
-;;; word-count.el --- Word count tool
+;;; word-stats.el --- Word stats tool
 
 ;; Copyright (C) 2016-2017 Launay Gaby
 
@@ -6,8 +6,8 @@
 ;; Maintainer: Launay Gaby <gaby.launay@tutanota.com>
 ;; Package-Requires: ((emacs "24.4"))
 ;; Version: 0.1.0
-;; Keywords: word, count
-;; URL: http://github.com/galaunay/word-count.el
+;; Keywords: word, stats
+;; URL: http://github.com/galaunay/word-stats.el
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -30,12 +30,12 @@
 
 ;;; Commentary:
 
-;; Word count is a small tool to display word stats in a buffer or a region of a
+;; Word stats is a small tool to display word stats in a buffer or a region of a
 ;; buffer
 
 ;; Basic usage
 
-;; `word-count` will display a buffer with statistics on the current buffer word
+;; `word-stats` will display a buffer with statistics on the current buffer word
 ;; usage.
 
 ;;; Code:
@@ -43,30 +43,30 @@
 (require 'subr-x)
 (require 'org)
 
-(defgroup word-count nil
-  "Word count tool."
-  :prefix "word-count-"
+(defgroup word-stats nil
+  "Word stats tool."
+  :prefix "word-stats-"
   :group 'tools)
 
-(defcustom word-count-ignored-symbols "[.,'&+-=#[\"|<>)\\(^\/*%${}]+"
+(defcustom word-stats-ignored-symbols "[.,'&+-=#[\"|<>)\\(^\/*%${}]+"
   "Regexp matching symbol to be ignored."
   :type 'regexp
-  :group 'word-count)
+  :group 'word-stats)
 
-(defcustom word-count-minimum-word-length 3
+(defcustom word-stats-minimum-word-length 3
   "Ignore word wth length smaller than this."
   :type 'string
-  :group 'word-count)
+  :group 'word-stats)
 
-(defcustom word-count-ignored-words '("the" "to" "and" "i" "a" "of" "in" "on"
+(defcustom word-stats-ignored-words '("the" "to" "and" "i" "a" "of" "in" "on"
                                       "0" "be" "my" "-" "as" "it" "by" "for"
                                       "that" "am" "also" "this" "an"
                                       "at" "is")
-  "List of words that will not be counted."
+  "List of words that will be ignored."
   :type '(repeat string)
-  :group 'word-count)
+  :group 'word-stats)
 
-(defun word-count--count-raw-word-list (raw-word-list)
+(defun word-stats--count-raw-word-list (raw-word-list)
   "Count word occurence in RAW-WORD-LIST."
   (cl-loop with result = nil
            for elt in raw-word-list
@@ -75,7 +75,7 @@
            finally return (sort result
                                 (lambda (a b) (string< (car a) (car b))))))
 
-(defun word-count ()
+(defun word-stats ()
   "Show the current buffer or region word stats."
   (interactive)
   (let* ((text (if (region-active-p)
@@ -83,7 +83,7 @@
                  (buffer-string)))
          ;; remove ignored symbols
          (clean-text (replace-regexp-in-string
-                      word-count-ignored-symbols
+                      word-stats-ignored-symbols
                       " " text))
          ;; remove commented lines
          (clean-text (string-join (cl-remove-if
@@ -101,15 +101,15 @@
          (words (split-string (downcase clean-text) "[ \f\t\n\r\v]+" t))
          ;; remove ignored words
          (raw-word-list (cl-remove-if
-                         (lambda (elt) (member elt word-count-ignored-words))
+                         (lambda (elt) (member elt word-stats-ignored-words))
                          words))
          ;; remove small words
          (raw-word-list (cl-remove-if
                          (lambda (elt)
-                           (< (length elt) word-count-minimum-word-length))
+                           (< (length elt) word-stats-minimum-word-length))
                          words))
          ;; count occurences
-         (word-list (word-count--count-raw-word-list raw-word-list)))
+         (word-list (word-stats--count-raw-word-list raw-word-list)))
     (with-current-buffer (get-buffer-create "*word-statistics*")
       (erase-buffer)
       (insert "| word | occurences |
@@ -127,5 +127,5 @@
   (pop-to-buffer "*word-statistics*"))
 
 
-(provide 'word-count)
-;;; word-count.el ends here
+(provide 'word-stats)
+;;; word-stats.el ends here
