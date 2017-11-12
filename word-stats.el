@@ -61,7 +61,7 @@
 (defcustom word-stats-ignored-words '("the" "to" "and" "i" "a" "of" "in" "on"
                                       "0" "be" "my" "-" "as" "it" "by" "for"
                                       "that" "am" "also" "this" "an"
-                                      "at" "is")
+                                      "at" "is" "www" "are" "you")
   "List of words that will be ignored."
   :type '(repeat string)
   :group 'word-stats)
@@ -99,33 +99,29 @@
                                    (split-string clean-text "\n")) "\n"))
          ;; split to words
          (words (split-string (downcase clean-text) "[ \f\t\n\r\v]+" t))
-         ;; remove ignored words
-         (raw-word-list (cl-remove-if
-                         (lambda (elt) (member elt word-stats-ignored-words))
-                         words))
-         ;; remove small words
+         ;; remove ignored and small words
          (raw-word-list (cl-remove-if
                          (lambda (elt)
-                           (< (length elt) word-stats-minimum-word-length))
+                           (or (member elt word-stats-ignored-words)
+                               (< (length elt) word-stats-minimum-word-length))
+                               )
                          words))
          ;; count occurences
          (word-list (word-stats--count-raw-word-list raw-word-list)))
     (with-current-buffer (get-buffer-create "*word-statistics*")
       (erase-buffer)
-      (insert "| word | occurences |
+      (insert "| Word | Occurences |
                | <50> | <20>       |
-               |-----------+------------|\n")
-
+               |------+------------|\n")
       (dolist (elt word-list)
-        (insert (format "| '%s' | %d |\n" (car elt) (cdr elt))))
-
+        (insert (format "| %s | %d |\n" (car elt) (cdr elt))))
       (org-mode)
       (indent-region (point-min) (point-max))
       (goto-char 0)
       (org-cycle) (org-cycle) (org-cycle) (org-cycle) (org-cycle) (org-cycle)
-      (org-table-sort-lines nil ?N)))
+      (org-table-sort-lines nil ?N)
+      (org-shifttab)))
   (pop-to-buffer "*word-statistics*"))
-
 
 (provide 'word-stats)
 ;;; word-stats.el ends here
